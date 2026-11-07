@@ -1,0 +1,8 @@
+#!/bin/sh
+
+
+sudo mount ../../sdcard.img foo
+sudo vi foo/startup.lsp
+cp foo/startup.lsp .
+sudo umount foo
+
