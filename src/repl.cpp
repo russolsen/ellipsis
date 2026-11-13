@@ -8,15 +8,22 @@
 #include "lisp.h"
 #include "parser.h"
 
+const char *STARTUP = "startup.lsp";
+
 int repl(void) {
   CKernel *pKernel = GetKernelP();
 
   CLisp lisp(8000, pKernel, pKernel->GetLoggerP());
 
-  CCharPrompter prompter("Elpss> ", pKernel, pKernel);
+  CCharPrompter prompter("Ellipsis> ", pKernel, pKernel);
   CParser parser(&prompter);
 
-  pKernel->Print("\\nWelcome to Ellipsis!\n\n");
+  pKernel->Print("\n\nWelcome to Ellipsis!\n\n");
+
+  if (CFatFileDevice::Exists(STARTUP)) {
+    lisp.Load(STARTUP);
+  }
+
   while (1) {
     CCell *v = parser.ReadValue(&lisp);
     if (v == lisp.Eof()) {
