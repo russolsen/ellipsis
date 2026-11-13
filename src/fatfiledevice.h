@@ -42,6 +42,13 @@ public:
   int GetChar();
   boolean Close();
 
+  static bool Exists(const char *path) {
+    FILINFO fno;
+    FRESULT fr = f_stat(path, &fno);
+
+    return FR_OK == fr;
+  }
+
 private:
   boolean m_IsOpen;
   FIL m_File;
