@@ -18,6 +18,8 @@ public:
 
   CCell *Load(const char *);
 
+  CCell *Equal(CCell *, CCell *);
+
   CCons *Map(CCell *, CCons *, CEnv *);
 
   CCell *Reduce(CCell *f, CCons *lst, CEnv *env);
@@ -36,12 +38,19 @@ public:
   const int MIN_CACHED_INT = 1 - CACHED_INT_BIAS;
   const int MAX_CACHED_INT = N_CACHED_INTS - CACHED_INT_BIAS;
 
-  CCell *MakeInt(long v = 0) {
+  CInt *MakeInt(long v = 0) {
     if (v <= MAX_CACHED_INT && v >= MIN_CACHED_INT) {
       return m_Ints + (v + CACHED_INT_BIAS - 1);
     }
     CCell *cell = m_PManager->Allocate();
     return AsInt(cell, v);
+  }
+
+  CCell *MakeBool(int b) {
+    if (b) {
+      return m_SymTrue;
+    }
+    return Nil;
   }
 
   CSymbol *MakeSymbol(const char *name) {
@@ -75,9 +84,9 @@ public:
   }
 
   CCell *Apply(CCell *func_expr, CCons *args, CEnv *env) {
-    m_PPrinter->Print("Apply: ");
-    Print(args);
-    m_PPrinter->Print("\n");
+    // m_PPrinter->Print("Apply: ");
+    // Print(args);
+    // m_PPrinter->Print("\n");
 
     ValueType t = func_expr->Type();
 
@@ -150,6 +159,8 @@ public:
 
   CEnv *Env(void) { return m_Env; }
 
+  CSymbol *True() { return m_SymTrue; }
+
   CSymbol *Eof() { return m_SymEof; }
 
   CSymbol *RParen() { return m_SymRParen; }
@@ -177,6 +188,7 @@ private:
   CCons *m_Symbols;
   CEnv *m_Env;
   CInt *m_Ints;
+  CSymbol *m_SymTrue;
   CSymbol *m_SymIf;
   CSymbol *m_SymFn;
   CSymbol *m_SymMacro;

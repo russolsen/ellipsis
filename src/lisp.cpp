@@ -25,6 +25,7 @@ CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
 
   m_Env = MakeEnv((CCons *)Nil, super_env);
 
+  m_SymTrue = Intern("#t");
   m_SymIf = Intern("if");
   m_SymFn = Intern("fn");
   m_SymMacro = Intern("macro");
@@ -37,16 +38,16 @@ CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
   m_SymEnv = Intern("*env*");
 
   Bind(Intern("version"), MakeInt(100), m_Env);
-  Bind(Intern("#t"), MakeInt(1), m_Env);
+  Bind(m_SymTrue, m_SymTrue, m_Env);
   Bind(m_SymNil, Nil, m_Env);
   InitBasicPrimitives(this);
   InitIOPrimitives(this);
 }
 
 CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
-  m_PPrinter->Print("Eval: ");
-  Print(expr);
-  m_PPrinter->Print("\n");
+  // m_PPrinter->Print("Eval: ");
+  // Print(expr);
+  // m_PPrinter->Print("\n");
 
   if (!env)
     env = m_Env;
@@ -168,10 +169,10 @@ CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
   CCell *evaled_verb = Eval(verb, env);
   if (TypeOf(evaled_verb) == LISP_MACRO) {
     CCell *resulting_code = Apply(evaled_verb, args, env);
-    DebugValue("Macro resulting code", resulting_code);
+    // DebugValue("Macro resulting code", resulting_code);
     return Eval(resulting_code, ((CFunction *)evaled_verb)->Env());
   } else {
-    m_PPrinter->Print("Function!\n");
+    // m_PPrinter->Print("Function!\n");
     CCons *evaled_args = EvalItems(args, env);
     return Apply(evaled_verb, evaled_args, env);
   }
@@ -199,7 +200,7 @@ CCell *CLisp::Load(const char *path) {
   CFatFileDevice fd;
   fd.Initialize(path, FA_READ | FA_OPEN_EXISTING);
   CBufferedCharReader reader(&fd);
-  CParser parser(&reader, true);
+  CParser parser(&reader, false);
 
   CCell *result = nullptr;
 
@@ -210,6 +211,31 @@ CCell *CLisp::Load(const char *path) {
   }
   fd.Close();
   return result;
+}
+
+CCell *CLisp::Equal(CCell *a, CCell *b) {
+  const char *s_a, *s_b;
+  if (a == b)
+    return Nil;
+
+  ValueType t_a = TypeOf(a);
+  ValueType t_b = TypeOf(b);
+
+  if (t_a != t_b)
+    return Nil;
+
+  switch (t_a) {
+  case LISP_INTEGER:
+    return (((CInt *)a)->GetInt()) == (((CInt *)b)->GetInt()) ? m_SymTrue : Nil;
+
+  case LISP_STRING:
+    s_a = ((CCharString *)a)->String();
+    s_b = ((CCharString *)b)->String();
+    return strcmp(s_a, s_b) ? Nil : m_SymTrue;
+
+  default:
+    return Nil;
+  }
 }
 
 CCons *CLisp::Map(CCell *f, CCons *lst, CEnv *env) {
