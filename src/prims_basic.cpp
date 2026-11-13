@@ -51,6 +51,8 @@ PRIM(FApply) {
   return lisp->Apply(f, (CCons *)lst, env);
 }
 
+PRIM(FEnv) { return env->GetBindings(); }
+
 PRIM(FFirst) {
   UNPACK1(lst)
   return ((CCons *)lst)->First();
@@ -66,6 +68,19 @@ PRIM(FType) {
   return lisp->MakeInt(TypeOf(v));
 }
 
+PRIM(FIdentical) {
+  UNPACK2(a, b)
+  return (a == b) ? lisp->True() : Nil;
+}
+
+PRIM(FEqual) {
+  UNPACK2(a, b)
+  if (a == b)
+    return lisp->True();
+
+  return lisp->Equal(a, b);
+}
+
 void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("*info*", FInfo);
   lisp->DefinePrimitive("+", FAdd);
@@ -77,7 +92,10 @@ void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("reduce", FReduce);
   lisp->DefinePrimitive("list", FList);
   lisp->DefinePrimitive("apply", FApply);
+  lisp->DefinePrimitive("env", FEnv);
   lisp->DefinePrimitive("first", FFirst);
   lisp->DefinePrimitive("rest", FRest);
   lisp->DefinePrimitive("type", FType);
+  lisp->DefinePrimitive("identical?", FIdentical);
+  lisp->DefinePrimitive("=", FEqual);
 }
