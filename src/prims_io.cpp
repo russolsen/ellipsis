@@ -89,6 +89,42 @@ PRIM(FDir) {
   return contents;
 }
 
+PRIM(FStat) {
+  FRESULT fr;
+  ARG1_AS(path_string, CCharString *)
+  const char *path = path_string->String();
+
+  FILINFO fno;
+  fr = f_stat(path, &fno);
+
+  CCell *result = Nil;
+
+  if (FR_OK == fr) {
+    CCell *c_size = lisp->MakeInt(fno.fsize);
+
+    char attrs[6];
+    strcpy(attrs, "-----");
+    if (fno.fattrib & AM_DIR)
+      attrs[0] = 'D';
+    else
+      attrs[0] = 'F';
+    if (fno.fattrib & AM_RDO)
+      attrs[1] = 'R';
+    if (fno.fattrib & AM_HID)
+      attrs[2] = 'H';
+    if (fno.fattrib & AM_SYS)
+      attrs[3] = 'S';
+    if (fno.fattrib & AM_ARC)
+      attrs[4] = 'A';
+
+    CCell *c_attrs = lisp->MakeString(attrs);
+
+    result = lisp->MakeListZ(path_string, c_attrs, c_size, 0);
+  }
+
+  return result;
+}
+
 void InitIOPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("cat", FCat);
   lisp->DefinePrimitive("f-open", FOpen);
@@ -96,4 +132,5 @@ void InitIOPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("read", FRead);
   lisp->DefinePrimitive("load", FLoad);
   lisp->DefinePrimitive("dir", FDir);
+  lisp->DefinePrimitive("stat", FStat);
 }
