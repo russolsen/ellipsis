@@ -39,6 +39,16 @@ PRIM(FMap) {
   return lisp->Map(f, (CCons *)lst, env);
 }
 
+PRIM(FDoAll) {
+  UNPACK2(f, lst)
+  CCell *result = Nil;
+
+  for(CCons *l = (CCons *)lst; l; l = l->Rest()) {
+    result = lisp->Apply(f, lisp->Cons(l->First()), env);
+  }
+  return result;
+}
+
 PRIM(FReduce) {
   UNPACK2(f, lst)
   return lisp->Reduce(f, (CCons *)lst, env);
@@ -81,6 +91,14 @@ PRIM(FEqual) {
   return lisp->Equal(a, b);
 }
 
+PRIM(FSTRLEN) {
+  CK_ARGS(1)
+  ARG1_AS(s, CCharString*)
+
+  int n = strlen(s->String());
+  return lisp->MakeInt(n);
+}
+
 void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("*info*", FInfo);
   lisp->DefinePrimitive("+", FAdd);
@@ -89,6 +107,7 @@ void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("/", FDiv);
   lisp->DefinePrimitive("double", FDouble);
   lisp->DefinePrimitive("map", FMap);
+  lisp->DefinePrimitive("doall", FDoAll);
   lisp->DefinePrimitive("reduce", FReduce);
   lisp->DefinePrimitive("list", FList);
   lisp->DefinePrimitive("apply", FApply);
@@ -98,4 +117,5 @@ void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("type", FType);
   lisp->DefinePrimitive("identical?", FIdentical);
   lisp->DefinePrimitive("=", FEqual);
+  lisp->DefinePrimitive("strlen", FSTRLEN);
 }
