@@ -17,6 +17,12 @@ enum TokenType : char {
 
 inline bool IsDigit(int ch) { return ch >= '0' && ch <= '9'; }
 
+inline bool IsOctalDigit(int ch) { return ch >= '0' && ch <= '7'; }
+
+inline bool IsHexDigit(int ch) { 
+  return IsDigit(ch) || (ch >= 'a' && ch <= 'f');
+}
+
 inline bool IsSpace(int ch) {
   switch (ch) {
   case ' ':
@@ -48,9 +54,17 @@ private:
 
   void SkipSpace();
 
+  void SkipWhiteSpace();
+
+  void SkipEOL();
+
   char *ReadDelimited();
 
   char *ReadString();
+
+  char ReadOctalChar();
+
+  char ReadHexChar();
 
 private:
   CCharReader *m_CharReader;
