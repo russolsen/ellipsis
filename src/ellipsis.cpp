@@ -50,8 +50,14 @@ int main(void) {
 }
 
 void Print(const char *fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  _pKernel->Print(fmt, args);
-  va_end(args);
+  va_list var;
+  va_start(var, fmt);
+
+  CString Message;
+  Message.FormatV(fmt, var);
+
+  _pKernel->Print("%s", (const char *)Message);
+
+  va_end(var);
+
 }
