@@ -4,6 +4,24 @@
 #include "prim_utils.h"
 #include "prims_basic.h"
 
+PRIM(FPrint) {
+  for(CCons *p = args; p; p = p->Rest()) {
+	  lisp->Print(p->First());
+  }
+  return Nil;
+}
+
+PRIM(FEmit) {
+  CKernel *k = GetKernelP();
+
+  for(CCons *p = args; p; p = p->Rest()) {
+    CCharString *s = (CCharString *)p->First();
+    k->Print("%s", s->String());
+  }
+
+  return Nil;
+}
+
 PRIM(FCat) {
   ARG1_AS(path, CCharString *)
   CKernel *k = GetKernelP();
@@ -126,6 +144,8 @@ PRIM(FStat) {
 }
 
 void InitIOPrimitives(CLisp *lisp) {
+  lisp->DefinePrimitive("print", FPrint);
+  lisp->DefinePrimitive("emit", FEmit);
   lisp->DefinePrimitive("cat", FCat);
   lisp->DefinePrimitive("f-open", FOpen);
   lisp->DefinePrimitive("f-close", FClose);
