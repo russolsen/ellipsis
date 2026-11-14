@@ -81,7 +81,7 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
   }
 }
 
-void CLisp::Print(CCell *expr) {
+void CLisp::Print(CCell *expr, const char *spacer) {
   ValueType t = TypeOf(expr);
 
   switch (t) {
@@ -132,6 +132,7 @@ void CLisp::Print(CCell *expr) {
     m_PPrinter->Print("%x?? ", expr);
     break;
   }
+  m_PPrinter->Print(spacer);
 }
 
 CCell *CLisp::EvalList(CCons *expr, CEnv *env) {

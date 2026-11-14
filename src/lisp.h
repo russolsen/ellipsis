@@ -14,7 +14,7 @@ public:
 
   CCons *EvalItems(CCons *, CEnv *);
 
-  void Print(CCell *expr);
+  void Print(CCell *expr, const char *spacer=" ");
 
   CCell *Load(const char *);
 
