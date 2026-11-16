@@ -115,7 +115,7 @@ void CParser::SkipSpace() {
   SkipWhiteSpace();
 
   int ch = GetChar();
-  while(ch == ';') {
+  while (ch == ';') {
     SkipEOL();
     SkipWhiteSpace();
     ch = GetChar();
@@ -168,9 +168,11 @@ char *CParser::ReadString() {
     if (ch <= 0) {
       break;
     } else if (ch == '\\') {
-      ch = GetChar();
+      ch = ToLower(GetChar());
       if (ch == 'n')
         m_Token[i++] = '\n';
+      else if (ch == 'e')
+        m_Token[i++] = '\x1b';
       else if (ch == '0')
         m_Token[i++] = ReadOctalChar();
       else if (ch == 'x')
@@ -191,7 +193,7 @@ char *CParser::ReadString() {
 
 char CParser::ReadOctalChar() {
   char result = 0;
-  for(int i=0; i< 3; i++) {
+  for (int i = 0; i < 3; i++) {
     int ch = GetChar();
     if (!IsOctalDigit(ch)) {
       UnGetChar(ch);
@@ -201,22 +203,21 @@ char CParser::ReadOctalChar() {
     result += (ch - '0');
   }
   return result;
-}  
+}
 
 char CParser::ReadHexChar() {
   char result = 0;
-  for(int i=0; i< 2; i++) {
+  for (int i = 0; i < 2; i++) {
     int ch = GetChar();
     if (!IsHexDigit(ch)) {
       UnGetChar(ch);
       break;
     }
     result *= 16;
-    if (IsDigit(ch)) 
+    if (IsDigit(ch))
       result += (ch - '0');
     else
       result += (ch - 'a') + 10;
   }
   return result;
-}  
-
+}

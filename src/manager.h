@@ -6,14 +6,13 @@
 
 class CMemoryManager {
 public:
-  const int Size = 16000;
-
   CMemoryManager(const long size);
 
   inline CCell *Allocate(void) {
     CCons *result = m_PFree;
     m_PFree = m_PFree->Rest();
     result->Allocate();
+    m_FreeCount--;
     return result;
   }
 
@@ -25,11 +24,15 @@ public:
     m_PFree = link;
   }
 
+  long FreeCount() { return m_FreeCount; }
+  long MemorySize() { return m_MemorySize; }
+
   void Mark(CCell *p);
   void Sweep(void);
 
 private:
   long m_MemorySize;
+  long m_FreeCount;
   CCons *m_Cells;
   CCons *m_PFree;
 };

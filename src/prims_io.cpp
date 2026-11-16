@@ -2,11 +2,11 @@
 #include "fatfiledevice.h"
 #include "parser.h"
 #include "prim_utils.h"
-#include "prims_basic.h"
+#include "prims_io.h"
 
 PRIM(FPrint) {
-  for(CCons *p = args; p; p = p->Rest()) {
-	  lisp->Print(p->First());
+  for (CCons *p = args; p; p = p->Rest()) {
+    lisp->Print(p->First());
   }
   return Nil;
 }
@@ -14,7 +14,7 @@ PRIM(FPrint) {
 PRIM(FEmit) {
   CKernel *k = GetKernelP();
 
-  for(CCons *p = args; p; p = p->Rest()) {
+  for (CCons *p = args; p; p = p->Rest()) {
     CCharString *s = (CCharString *)p->First();
     k->Print("%s", s->String());
   }

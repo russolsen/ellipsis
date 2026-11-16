@@ -1,10 +1,25 @@
+#include <circle/devicenameservice.h>
 #include "prims_basic.h"
 #include "ellipsis.h"
 #include "prim_utils.h"
 
+PRIM(FGC) {
+  lisp->DoGC();
+  return Nil;
+}
+
+PRIM(FFreeCount) {
+  return lisp->MakeInt(lisp->Manager()->FreeCount());
+}
+
 PRIM(FInfo) {
   CKernel *k = GetKernelP();
-  k->Print("size of CCell %d\n", sizeof(CCell));
+  k->Print("Size of CCell: %d\n", sizeof(CCell));
+  k->Print("Num free cells: %d\n", lisp->Manager()->FreeCount());
+  k->Print("\n");
+  k->Print("Devices:\n");
+  CDeviceNameService *dns = CDeviceNameService::Get();
+  dns->ListDevices(k->GetConsoleP(), true);
   return Nil;
 }
 
@@ -39,11 +54,15 @@ PRIM(FMap) {
   return lisp->Map(f, (CCons *)lst, env);
 }
 
+PRIM(FDo) {
+  return args->Last();
+}
+
 PRIM(FDoAll) {
   UNPACK2(f, lst)
   CCell *result = Nil;
 
-  for(CCons *l = (CCons *)lst; l; l = l->Rest()) {
+  for (CCons *l = (CCons *)lst; l; l = l->Rest()) {
     result = lisp->Apply(f, lisp->Cons(l->First()), env);
   }
   return result;
@@ -61,6 +80,8 @@ PRIM(FApply) {
   return lisp->Apply(f, (CCons *)lst, env);
 }
 
+PRIM(FBaseEnv) { return lisp->Env()->GetBindings(); }
+
 PRIM(FEnv) { return env->GetBindings(); }
 
 PRIM(FFirst) {
@@ -71,6 +92,17 @@ PRIM(FFirst) {
 PRIM(FRest) {
   UNPACK1(lst)
   return ((CCons *)lst)->Rest();
+}
+
+PRIM(FSecond) {
+  UNPACK1(lst)
+  return ((CCons *)lst)->Second();
+}
+
+
+PRIM(FThird) {
+  UNPACK1(lst)
+  return ((CCons *)lst)->Third();
 }
 
 PRIM(FType) {
@@ -91,15 +123,25 @@ PRIM(FEqual) {
   return lisp->Equal(a, b);
 }
 
-PRIM(FSTRLEN) {
+PRIM(FDefinedQ) {
   CK_ARGS(1)
-  ARG1_AS(s, CCharString*)
+  ARG1_AS(sym, CSymbol *)
+
+  return lisp->MakeBool(env->FindBinding(sym));
+}
+
+
+PRIM(FStrlen) {
+  CK_ARGS(1)
+  ARG1_AS(s, CCharString *)
 
   int n = strlen(s->String());
   return lisp->MakeInt(n);
 }
 
 void InitBasicPrimitives(CLisp *lisp) {
+  lisp->DefinePrimitive("gc", FGC);
+  lisp->DefinePrimitive("free-count", FFreeCount);
   lisp->DefinePrimitive("*info*", FInfo);
   lisp->DefinePrimitive("+", FAdd);
   lisp->DefinePrimitive("-", FSub);
@@ -107,15 +149,20 @@ void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("/", FDiv);
   lisp->DefinePrimitive("double", FDouble);
   lisp->DefinePrimitive("map", FMap);
+  lisp->DefinePrimitive("do", FDo);
   lisp->DefinePrimitive("doall", FDoAll);
   lisp->DefinePrimitive("reduce", FReduce);
   lisp->DefinePrimitive("list", FList);
   lisp->DefinePrimitive("apply", FApply);
+  lisp->DefinePrimitive("*env*", FBaseEnv);
   lisp->DefinePrimitive("env", FEnv);
   lisp->DefinePrimitive("first", FFirst);
   lisp->DefinePrimitive("rest", FRest);
+  lisp->DefinePrimitive("second", FSecond);
+  lisp->DefinePrimitive("third", FThird);
   lisp->DefinePrimitive("type", FType);
   lisp->DefinePrimitive("identical?", FIdentical);
   lisp->DefinePrimitive("=", FEqual);
-  lisp->DefinePrimitive("strlen", FSTRLEN);
+  lisp->DefinePrimitive("defined?", FDefinedQ);
+  lisp->DefinePrimitive("strlen", FStrlen);
 }

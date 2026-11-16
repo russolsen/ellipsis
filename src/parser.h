@@ -1,9 +1,5 @@
-//#include <cctype>
-//#include <cstdio>
-//#include <cstdlib>
-//#include <iostream>
-
 #include "lisp.h"
+#include "utils.h"
 
 enum TokenType : char {
   TT_EOF = '!',
@@ -14,25 +10,6 @@ enum TokenType : char {
   TT_QUOTE = '\'',
   TT_STRING = '"',
 };
-
-inline bool IsDigit(int ch) { return ch >= '0' && ch <= '9'; }
-
-inline bool IsOctalDigit(int ch) { return ch >= '0' && ch <= '7'; }
-
-inline bool IsHexDigit(int ch) { 
-  return IsDigit(ch) || (ch >= 'a' && ch <= 'f');
-}
-
-inline bool IsSpace(int ch) {
-  switch (ch) {
-  case ' ':
-  case '\n':
-  case '\t':
-  case '\r':
-    return 1;
-  }
-  return 0;
-}
 
 class CParser {
 

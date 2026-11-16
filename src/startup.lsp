@@ -1,5 +1,5 @@
 
-(emit "Startup\n")
+(emit "Startup\n\n\n")
 
 (def defn (macro (_name _args _body)
   (list 'def _name (list 'fn _args _body))))
@@ -12,16 +12,55 @@
 
 ;; Set up the screen.
 
-(def ESC "\x1b")
+(def ESC "\e")
 
-(defn fg-green  (a)
-  (emit ESC "[92m"))
+(defn set-color (color)
+  (emit ESC "[" color "m"))
 
+(defn test-color (color)
+  (do
+    (set-color color)
+    (emit color)
+    (emit "  ")))
+
+;; (test-color "90")
+;; (test-color "91")
+;; (test-color "92")
+;; (test-color "93")
+;; (test-color "94")
+ (test-color "95")
+ (test-color "96")
+ (test-color "97")
+;; 
+ (test-color "100")
+ (test-color "101")
+ (test-color "102")
+;; (test-color "103")
+;; (test-color "104")
+;; (test-color "105")
+;; (test-color "106")
+;; (test-color "107")
+ 
 (defn fg-bold  (a)
   (emit ESC "[1m"))
 
-(fg-green 99)
-(fg-bold 99)
+(defn screen-home (a)
+  (emit ESC "[H"))
+
+(defn screen-clear-eos (a)
+  (emit ESC "[J"))
+
+(set-color "97")
+(set-color "100")
+(screen-home)
+(screen-clear-eos)
+
+;; List utils
+
+(defn ffirst (lst) (first (first lst)))
+
+(defn rrest (lst) (rest (rest lst)))
+
 
 ;; Value types
 

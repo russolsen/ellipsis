@@ -1,6 +1,7 @@
 #ifndef _lisp_h_
 #define _lisp_h_
 
+#include "utils.h"
 #include "io.h"
 #include "kernel.h"
 #include "manager.h"
@@ -14,9 +15,13 @@ public:
 
   CCons *EvalItems(CCons *, CEnv *);
 
-  void Print(CCell *expr, const char *spacer=" ");
+  void Print(CCell *expr, const char *spacer = " ");
 
   CCell *Load(const char *);
+
+  bool GC();
+
+  void DoGC();
 
   CCell *Equal(CCell *, CCell *);
 
@@ -148,8 +153,6 @@ public:
     return result;
   }
 
-  void GC(void);
-
   void Bind(CSymbol *, CCell *, CEnv *);
   void DefinePrimitive(const char *, Primitive);
 
@@ -177,12 +180,15 @@ public:
     m_PPrinter->Print("\n");
   }
 
+  CMemoryManager *Manager() { return m_PManager; }
+
 private:
   bool FindSymbol(const char *name, CSymbol **result);
   CCell *EvalList(CCons *, CEnv *);
 
 private:
   CMemoryManager *m_PManager;
+  long m_GCThreshold;
   CPrinter *m_PPrinter;
   CLogger *m_PLogger;
   CCons *m_Symbols;
@@ -198,6 +204,5 @@ private:
   CSymbol *m_SymQuote;
   CSymbol *m_SymDef;
   CSymbol *m_SymNil;
-  CSymbol *m_SymEnv;
 };
 #endif

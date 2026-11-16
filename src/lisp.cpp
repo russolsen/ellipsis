@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "lisp.h"
 #include "fatfiledevice.h"
 #include "kernel.h"
@@ -10,6 +11,7 @@ const char *FromLisp = "Lisp";
 
 CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
   m_PManager = new CMemoryManager(msize);
+  m_GCThreshold = IntMax(msize * 0.5, 500);
   m_PPrinter = printer;
   m_PLogger = logger;
   m_Symbols = (CCons *)Nil;
@@ -35,7 +37,6 @@ CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
   m_SymEof = Intern("*eof*");
   m_SymRParen = Intern(")");
   m_SymNil = Intern("nil");
-  m_SymEnv = Intern("*env*");
 
   Bind(Intern("version"), MakeInt(100), m_Env);
   Bind(m_SymTrue, m_SymTrue, m_Env);
@@ -157,9 +158,6 @@ CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
     return MakeFunction(args, env);
   } else if (verb == m_SymMacro) {
     return MakeMacro(args, env);
-  } else if (verb == m_SymEnv) {
-    Print(env);
-    return Nil;
   } else if (verb == m_SymDef) {
     CSymbol *name = (CSymbol *)args->First();
     CCell *value = Eval(args->Second(), env);
@@ -294,9 +292,18 @@ CCons *CLisp::MakeListZ(CCell *first_arg, ...) {
   return result;
 }
 
-void CLisp::GC(void) {
+bool CLisp::GC() {
+  if (m_PManager->FreeCount() < m_GCThreshold) {
+    DoGC();
+    return true;
+  }
+  return false;
+}
+
+void CLisp::DoGC() {
   m_PManager->Mark(m_Symbols);
   m_PManager->Mark(m_Env);
+  m_PManager->Mark(m_Ints);
   m_PManager->Sweep();
 }
 

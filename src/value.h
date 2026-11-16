@@ -41,6 +41,7 @@ public:
   void Release(void) {
     SetFreed(1);
     SetMarked(0);
+    m_Type = LISP_INVALID;
   }
 
   unsigned char Freed(void) { return m_Freed; }
@@ -162,6 +163,15 @@ public:
 
   CCell *Third(void) { return Rest()->Rest()->First(); }
 
+  CCell *Last() {
+    CCell *result = Nil;
+
+    for(CCons *p = this; p; p = p->Rest()) {
+	result = p->First();
+    }
+    return result;
+  }
+
 private:
   CCell *m_Car;
   CCell *m_Cdr;
@@ -194,11 +204,11 @@ public:
   CCons *GetBindings(void) { return m_Bindings; }
   CEnv *GetParent(void) { return m_Parent; }
 
-  bool FindBinding(CCell *sym, CCons **result) {
+  bool FindBinding(CCell *sym, CCons **result=nullptr) {
     for (CCons *p = m_Bindings; NotNil(p); p = p->Rest()) {
       CCons *binding = p->First();
       if (binding->Car() == sym) {
-        *result = binding;
+	if (result) *result = binding;
         return true;
       }
     }
@@ -206,7 +216,7 @@ public:
     if (NotNil(m_Parent)) {
       return m_Parent->FindBinding(sym, result);
     } else {
-      *result = (CCons *)Nil;
+      if (result) *result = (CCons *)Nil;
       return false;
     }
   }

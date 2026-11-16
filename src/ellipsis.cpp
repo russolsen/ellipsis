@@ -59,5 +59,4 @@ void Print(const char *fmt, ...) {
   _pKernel->Print("%s", (const char *)Message);
 
   va_end(var);
-
 }

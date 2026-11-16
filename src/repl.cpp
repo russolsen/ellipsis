@@ -13,7 +13,7 @@ const char *STARTUP = "startup.lsp";
 int repl(void) {
   CKernel *pKernel = GetKernelP();
 
-  CLisp lisp(8000, pKernel, pKernel->GetLoggerP());
+  CLisp lisp(32000, pKernel, pKernel->GetLoggerP());
 
   CCharPrompter prompter("Ellipsis> ", pKernel, pKernel);
   CParser parser(&prompter);
@@ -32,6 +32,7 @@ int repl(void) {
     CCell *result = lisp.Eval(v, 0);
     lisp.Print(result);
     pKernel->Print("\n");
+    lisp.GC();
   }
 
   return 1;
