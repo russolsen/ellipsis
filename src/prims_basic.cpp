@@ -14,7 +14,12 @@ PRIM(FFreeCount) {
 
 PRIM(FInfo) {
   CKernel *k = GetKernelP();
-  k->Print("Size of CCell: %d\n", sizeof(CCell));
+  k->Print("Size of CCell: %d ", sizeof(CCell));
+  k->Print("CFunction: %d  ", sizeof(CFunction));
+  k->Print("CCons: %d ", sizeof(CCons));
+  k->Print("CPrimitive: %d ", sizeof(CPrimitive));
+  k->Print("CEnv: %d ", sizeof(CEnv));
+  k->Print("\n");
   k->Print("Num free cells: %d\n", lisp->Manager()->FreeCount());
   k->Print("\n");
   k->Print("Devices:\n");
