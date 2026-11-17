@@ -44,7 +44,7 @@ public:
   const int MAX_CACHED_INT = N_CACHED_INTS - CACHED_INT_BIAS;
 
   CInt *MakeInt(long v = 0) {
-    if (v <= MAX_CACHED_INT && v >= MIN_CACHED_INT) {
+    if ((v <= MAX_CACHED_INT) && (v >= MIN_CACHED_INT)) {
       return m_Ints + (v + CACHED_INT_BIAS - 1);
     }
     CCell *cell = m_PManager->Allocate();
@@ -135,25 +135,10 @@ public:
     return Eval(body, local_env);
   }
 
-  CEnv *BindParameters(CCons *params, CCons *args, CEnv *parent_env = 0) {
-    CEnv *result = MakeEnv((CCons *)Nil, parent_env);
-    for (CCons *pParam = params; NotNil(pParam); pParam = pParam->Rest()) {
-      if (args == Nil) {
-        m_PPrinter->Print("Too few Arguments!");
-        return (CEnv *)Nil; // Error.
-      }
-      CSymbol *name = (CSymbol *)pParam->First();
-      Bind(name, args->First(), result);
-      args = args->Rest();
-    }
-    if (args != Nil) {
-      m_PPrinter->Print("Too many Arguments!");
-      return (CEnv *)Nil;
-    }
-    return result;
-  }
+  CEnv *BindParameters(CCons *params, CCons *args, CEnv *parent_env = 0);
 
   void Bind(CSymbol *, CCell *, CEnv *);
+
   void DefinePrimitive(const char *, Primitive);
 
   CSymbol *Intern(const char *name);

@@ -19,6 +19,8 @@ enum ValueType : unsigned char {
   LISP_ENV,
   LISP_SHORT_STRING,
   LISP_SHORT_SYMBOL,
+  LISP_EMPTY = 0xcc,
+  LISP_RAWCELL = 0xfe,
   LISP_INVALID = 0xff,
 };
 
@@ -41,8 +43,11 @@ public:
   void Release(void) {
     SetFreed(1);
     SetMarked(0);
-    m_Type = LISP_INVALID;
   }
+
+  virtual ValueType Type() { return LISP_RAWCELL; }
+  virtual CCell *Car(void) { return Nil; }
+  virtual CCell *Cdr(void) { return Nil; }
 
   unsigned char Freed(void) { return m_Freed; }
 
@@ -52,103 +57,24 @@ public:
 
   void SetMarked(unsigned char m) { m_Marked = m; }
 
-  ValueType Type(void) { return (ValueType)m_Type; }
-
 protected:
-  unsigned char m_Type;
   unsigned char m_Flags;
   unsigned char m_Marked;
   unsigned char m_Freed;
 };
 
-class CInt : public CCell {
-public:
-  CInt *Morph(long v) {
-    m_Type = LISP_INTEGER;
-    m_Int = v;
-    return this;
-  }
-
-  long GetInt(void) { return m_Int; }
-
-private:
-  long m_Int;
-};
-
-inline CInt *AsInt(CCell *v, long l) { return ((CInt *)v)->Morph(l); }
-
-class CPrimitive : public CCell {
-public:
-  CPrimitive *Morph(Primitive prim) {
-    m_Type = LISP_PRIMITIVE;
-    m_Primitive = prim;
-    return this;
-  }
-
-  Primitive GetPFunc(void) { return m_Primitive; }
-
-private:
-  Primitive m_Primitive;
-};
-
-inline CPrimitive *AsPrimitive(CCell *v, Primitive prim) {
-  return ((CPrimitive *)v)->Morph(prim);
-}
-
-class CBaseString : public CCell {
-public:
-  CBaseString *Initialize(const char *name) {
-    const unsigned int l = strlen(name) + 1;
-    char *contents = new char[l];
-    strcpy(contents, name);
-    m_String = contents;
-    return this;
-  }
-
-  const char *String(void) { return m_String; }
-
-private:
-  char *m_String;
-};
-
-class CCharString : public CBaseString {
-public:
-  CCharString *Morph(const char *name) {
-    Initialize(name);
-    m_Type = LISP_STRING;
-    return this;
-  }
-};
-
-inline CCharString *AsString(CCell *v, const char *name) {
-  return ((CCharString *)v)->Morph(name);
-}
-
-class CSymbol : public CBaseString {
-public:
-  CSymbol *Morph(const char *name) {
-    m_Type = LISP_SYMBOL;
-    Initialize(name);
-    return this;
-  }
-};
-
-inline CSymbol *AsSymbol(CCell *v, const char *name) {
-  return ((CSymbol *)v)->Morph(name);
-}
-
 class CCons : public CCell {
 public:
-  CCons(CCell *car = Nil, CCell *cdr = Nil) { Morph(car, cdr); }
-
-  CCons *Morph(CCell *car = Nil, CCell *cdr = Nil) {
-    m_Type = LISP_CONS;
+  CCons(CCell *car = Nil, CCell *cdr = Nil) {
     m_Car = car;
     m_Cdr = cdr;
-    return this;
   }
 
-  int Count(void);
+  void* operator new(size_t st, CCons* p ) { return p; }
+
+  virtual ValueType Type() { return LISP_CONS; }
+
+  int Count();
 
   CCell *Car(void) { return m_Car; }
   CCell *Cdr(void) { return m_Cdr; }
@@ -177,6 +103,102 @@ private:
   CCell *m_Cdr;
 };
 
+inline CCons *AsCons(CCell *v, CCell *car = 0, CCell *cdr = 0) {
+  CCons *c = new((CCons *)v) CCons(car, cdr);
+  return c;
+}
+
+class CInt : public CCell {
+public:
+  CInt(long v) {
+    m_Int = v;
+  }
+
+  CInt() {
+    m_Int = 0;
+  }
+
+  void* operator new(size_t st, CInt* p ) { return p; }
+
+  virtual ValueType Type() { return LISP_INTEGER; }
+
+  long GetInt(void) { return m_Int; }
+
+private:
+  long m_Int;
+};
+
+inline CInt *AsInt(CCell *v, long l)
+{
+  CInt *c = new((CInt *)v) CInt(l);
+  return c;
+}
+
+class CPrimitive : public CCell {
+public:
+  CPrimitive(Primitive prim) {
+    m_Primitive = prim;
+  }
+
+  void* operator new(size_t st, CPrimitive* p ) { return p; }
+
+  ValueType Type() { return LISP_PRIMITIVE; }
+
+  Primitive GetPFunc(void) { return m_Primitive; }
+
+private:
+  Primitive m_Primitive;
+};
+
+inline CPrimitive *AsPrimitive(CCell *v, Primitive prim) {
+  CPrimitive *p = new((CPrimitive *)v) CPrimitive(prim);
+  return p;
+}
+
+class CBaseString : public CCell {
+public:
+  CBaseString(const char *name) {
+    const unsigned int l = strlen(name) + 1;
+    char *contents = new char[l];
+    strcpy(contents, name);
+    m_String = contents;
+  }
+
+  const char *String(void) { return m_String; }
+
+private:
+  char *m_String;
+};
+
+class CCharString : public CBaseString {
+  public:
+
+  CCharString(const char *name) : CBaseString(name) {}
+
+  void* operator new( size_t, CCharString* p ) { return p; }
+
+  ValueType Type() { return LISP_STRING; }
+};
+
+inline CCharString *AsString(CCell *v, const char *name) {
+  CCharString *s = new((CCharString *)v) CCharString(name);
+  return s;
+}
+
+class CSymbol : public CBaseString {
+public:
+  void* operator new( size_t, CSymbol* p ) { return p; }
+
+  CSymbol(const char *name) : CBaseString(name) {}
+
+  ValueType Type() { return LISP_SYMBOL; }
+};
+
+inline CSymbol *AsSymbol(CCell *v, const char *name) {
+  CSymbol *s = new((CSymbol *)v) CSymbol(name);
+  return s;
+}
+
 inline ValueType TypeOf(CCell *v) {
   if (!v) {
     return LISP_NIL;
@@ -187,18 +209,16 @@ inline ValueType TypeOf(CCell *v) {
 inline bool IsNil(CCell *v) { return TypeOf(v) == LISP_NIL; }
 inline bool NotNil(CCell *v) { return TypeOf(v) != LISP_NIL; }
 
-inline CCons *AsCons(CCell *v, CCell *car = Nil, CCell *cdr = Nil) {
-  return ((CCons *)v)->Morph(car, cdr);
-}
-
 class CEnv : public CCell {
 public:
-  CEnv *Morph(CCons *bindings, CEnv *parent = 0) {
-    m_Type = LISP_ENV;
+  CEnv(CCons *bindings, CEnv *parent = 0) {
     m_Bindings = bindings;
     m_Parent = parent;
-    return this;
   }
+
+  void* operator new( size_t, CEnv* p ) { return p; }
+
+  ValueType Type() { return LISP_ENV; };
 
   void SetBindings(CCons *b) { m_Bindings = b; }
   CCons *GetBindings(void) { return m_Bindings; }
@@ -226,18 +246,25 @@ private:
   CEnv *m_Parent;
 };
 
+#if 1
 inline CEnv *AsEnv(CCell *v, CCons *bindings, CEnv *parent = 0) {
-  return ((CEnv *)v)->Morph(bindings, parent);
+  CEnv *e = new((CEnv *)v) CEnv(bindings, parent);
+  //CEnv *e = new(v) CEnv(bindings, parent);
+  return e;
 }
+#endif
+
 
 class CFunction : public CCell {
 public:
-  CFunction *Morph(CCons *fdef, CEnv *env, ValueType t = LISP_FUNCTION) {
-    m_Type = t;
+  CFunction(CCons *fdef, CEnv *env) {
     m_Def = fdef;
     m_Env = env;
-    return this;
   }
+
+  void* operator new( size_t, CFunction* p ) { return p; }
+
+  ValueType Type() { return LISP_FUNCTION; };
 
   CCons *Def() { return m_Def; }
   CEnv *Env() { return m_Env; }
@@ -248,11 +275,22 @@ private:
 };
 
 inline CFunction *AsFunction(CCell *v, CCons *fdef, CEnv *env) {
-  return ((CFunction *)v)->Morph(fdef, env);
+  CFunction *f = new((CFunction *)v) CFunction(fdef, env);
+  return f;
 }
 
-inline CFunction *AsMacro(CCell *v, CCons *fdef, CEnv *env) {
-  return ((CFunction *)v)->Morph(fdef, env, LISP_MACRO);
+class CMacro : public CFunction {
+  public:
+    CMacro(CCons *fdef, CEnv *env) : CFunction(fdef, env) {}
+
+    void *operator new( size_t, CMacro *p) { return p; }
+
+    ValueType Type() { return LISP_MACRO; };
+};
+
+inline CMacro *AsMacro(CCell *v, CCons *fdef, CEnv *env) {
+  CMacro *f = new((CMacro *)v) CMacro(fdef, env);
+  return f;
 }
 
 inline bool IsTruthy(CCell *v) { return v != Nil; }

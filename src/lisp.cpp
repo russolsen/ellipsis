@@ -16,10 +16,10 @@ CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
   m_PLogger = logger;
   m_Symbols = (CCons *)Nil;
 
-  m_Ints = new CInt[MAX_CACHED_INT];
+  m_Ints = new CInt[N_CACHED_INTS];
 
   for (int i = 0; i < N_CACHED_INTS; i++) {
-    m_Ints[i].Morph(i - CACHED_INT_BIAS + 1);
+    m_Ints[i] = CInt(i - CACHED_INT_BIAS + 1);
   }
 
   CEnv *super_env = MakeEnv();
@@ -46,9 +46,9 @@ CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
 }
 
 CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
-  // m_PPrinter->Print("Eval: ");
-  // Print(expr);
-  // m_PPrinter->Print("\n");
+  //m_PPrinter->Print("Eval: ");
+  //Print(expr);
+  //m_PPrinter->Print("\n");
 
   if (!env)
     env = m_Env;
@@ -64,6 +64,7 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
   case LISP_SHORT_STRING:
   case LISP_FUNCTION:
   case LISP_MACRO:
+  case LISP_EMPTY:
     return expr;
 
   case LISP_SYMBOL:
@@ -86,6 +87,9 @@ void CLisp::Print(CCell *expr, const char *spacer) {
   ValueType t = TypeOf(expr);
 
   switch (t) {
+  case LISP_EMPTY:
+    m_PPrinter->Print("() ");
+    break;
   case LISP_NIL:
     m_PPrinter->Print("nil ");
     break;
@@ -306,6 +310,28 @@ void CLisp::DoGC() {
   m_PManager->Mark(m_Ints);
   m_PManager->Sweep();
 }
+
+
+CEnv *CLisp::BindParameters(CCons *params, CCons *args, CEnv *parent_env) {
+  CEnv *result = MakeEnv((CCons *)Nil, parent_env);
+  for (CCons *pParam = params; NotNil(pParam); pParam = pParam->Rest()) {
+    if (args == Nil) {
+      m_PPrinter->Print("Too few Arguments!\n");
+      DebugValue("args", args);
+      DebugValue("params", params);
+      return (CEnv *)Nil; // Error.
+    }
+    CSymbol *name = (CSymbol *)pParam->First();
+    Bind(name, args->First(), result);
+    args = args->Rest();
+  }
+  if (args != Nil) {
+    m_PPrinter->Print("Too many Arguments!");
+    return (CEnv *)Nil;
+  }
+  return result;
+}
+
 
 void CLisp::Bind(CSymbol *sym, CCell *value, CEnv *env) {
   CCons *old_bindings = env->GetBindings();

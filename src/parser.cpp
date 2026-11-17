@@ -44,7 +44,7 @@ CCons *CParser::ReadList(CLisp *lisp) {
   CCons *tail = (CCons *)Nil;
   CCell *v = ReadValue(lisp);
 
-  while (v && (v != lisp->RParen()) && (v != lisp->Eof())) {
+  while ((v != lisp->RParen()) && (v != lisp->Eof())) {
     CCons *new_link = lisp->Cons(v);
     if (IsNil(result)) {
       result = tail = new_link;

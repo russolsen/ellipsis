@@ -20,12 +20,16 @@ int repl(void) {
 
   pKernel->Print("\n\nWelcome to Ellipsis!\n\n");
 
+#if 1
   if (CFatFileDevice::Exists(STARTUP)) {
     lisp.Load(STARTUP);
   }
+#endif
 
   while (1) {
     CCell *v = parser.ReadValue(&lisp);
+    lisp.DebugValue("Read expr:", v);
+
     if (v == lisp.Eof()) {
       break;
     }

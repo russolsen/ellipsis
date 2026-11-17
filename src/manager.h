@@ -17,9 +17,8 @@ public:
   }
 
   inline void Release(CCell *p) {
-    CCons *link = (CCons *)p;
+    CCons *link = AsCons(p);
     link->Release();
-    link->Morph();
     link->SetRest(m_PFree);
     m_PFree = link;
   }

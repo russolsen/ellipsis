@@ -4,11 +4,16 @@
 (def defn (macro (_name _args _body)
   (list 'def _name (list 'fn _args _body))))
 
+(emit "defn\n")
+
 ;; Is this correct??
 (def defmacro (macro (_name _args _body)
   (list 'def _name (list 'macro _args _body))))
 
+(emit macro\n")
 (defn not (expr) (if expr nil else #t))
+
+(emit not\n")
 
 ;; Set up the screen.
 
@@ -41,18 +46,18 @@
 ;; (test-color "106")
 ;; (test-color "107")
  
-(defn fg-bold  (a)
+(defn fg-bold  ()
   (emit ESC "[1m"))
 
-(defn screen-home (a)
+(defn screen-home ()
   (emit ESC "[H"))
 
-(defn screen-clear-eos (a)
+(defn screen-clear-eos ()
   (emit ESC "[J"))
 
 (set-color "97")
 (set-color "100")
-(screen-home)
+(screen-home 99)
 (screen-clear-eos)
 
 ;; List utils
