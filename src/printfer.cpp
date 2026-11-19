@@ -26,10 +26,15 @@ void CPrintFer::PrintF(const char* format, ...) {
                 break;
             case 'v':
 		v = va_arg(args, CCell*);
-		v->Print(this);
+		if (v) v->Print(this);
+		else   m_Device->Write("nil", 3);
                 break;
              case 'd':
                 IntToString(va_arg(args, int), buffer);
+                m_Device->Write(buffer, strlen(buffer));
+                break;
+	     case 'x':
+                IntToString(va_arg(args, int), buffer, 16);
                 m_Device->Write(buffer, strlen(buffer));
                 break;
             case 'c':

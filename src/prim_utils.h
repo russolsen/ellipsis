@@ -3,8 +3,10 @@
 
 #define PRIM(_fname) CCell *_fname(CLisp *lisp, CCons *args, CEnv *env)
 
+#define ARG_COUNT() (args ? args->Count() : 0)
+  
 #define CK_ARGS(_n)                                                            \
-  if (args->Count() != _n) {                                                   \
+  if (ARG_COUNT() != _n) {                                                     \
     return Nil;                                                                \
   }
 

@@ -12,8 +12,6 @@ PRIM(FPrint) {
 }
 
 PRIM(FEmit) {
-  //CKernel *k = GetKernelP();
-
   for (CCons *p = args; p; p = p->Rest()) {
     CCharString *s = (CCharString *)p->First();
     lisp->GetPrintFer()->PrintF("%s", s->String());
@@ -77,11 +75,10 @@ PRIM(FLoad) {
 }
 
 PRIM(FDir) {
-
   const char *path = "/";
   const char *pat = "*";
 
-  int n = args->Count();
+  int n = ARG_COUNT();
 
   if (n >= 1) {
     ARG1_AS(path_string, CCharString *)

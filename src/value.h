@@ -80,6 +80,8 @@ public:
 
   int Count();
 
+  virtual void Print(CPrintFer *p);
+
   CCell *Car(void) { return m_Car; }
   CCell *Cdr(void) { return m_Cdr; }
 
@@ -149,6 +151,8 @@ public:
   void* operator new(size_t st, CPrimitive* p ) { return p; }
 
   ValueType Type() { return LISP_PRIMITIVE; }
+
+  virtual void Print(CPrintFer *p);
 
   Primitive GetPFunc(void) { return m_Primitive; }
 
@@ -230,6 +234,8 @@ public:
 
   ValueType Type() { return LISP_ENV; };
 
+  virtual void Print(CPrintFer *p);
+
   void SetBindings(CCons *b) { m_Bindings = b; }
   CCons *GetBindings(void) { return m_Bindings; }
   CEnv *GetParent(void) { return m_Parent; }
@@ -276,6 +282,8 @@ public:
 
   ValueType Type() { return LISP_FUNCTION; };
 
+  virtual void Print(CPrintFer *p);
+
   CCons *Def() { return m_Def; }
   CEnv *Env() { return m_Env; }
 
@@ -296,6 +304,8 @@ class CMacro : public CFunction {
     void *operator new( size_t, CMacro *p) { return p; }
 
     ValueType Type() { return LISP_MACRO; };
+
+    virtual void Print(CPrintFer *p);
 };
 
 inline CMacro *AsMacro(CCell *v, CCons *fdef, CEnv *env) {

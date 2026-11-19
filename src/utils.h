@@ -48,6 +48,6 @@ inline int ToUpper(int ch) {
 }
 
 extern void ReverseString(char *str);
-extern char *IntToString(int i, char* s);
+extern char *IntToString(int i, char* s, const int base=10);
 
 #endif

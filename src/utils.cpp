@@ -17,9 +17,9 @@ void ReverseString(char *str){
     }
 }
 
-const char *digits = "0123456789";
+const char *digits = "0123456789abcdef";
 
-char *IntToString(int i, char* s) {
+char *IntToString(int i, char* s, const int base) {
   int current = i;
 
   if (i == 0) {
@@ -31,19 +31,26 @@ char *IntToString(int i, char* s) {
 
   bool neg = false;
 
-  if (current < 0) {
+  if (current < 0 && base == 10) {
     current *= -1;
     neg = true;
   }
 
   while(current) {
-    int iDigit = current % 10;
+    int iDigit = current % base;
     *p++ = digits[iDigit];
     current /= 10;
   }
 
   if(neg) {
     *p++ = '-';
+  }
+
+  if (base == 16) {
+    *p++ = 'x';
+    *p++ = '0';
+  } else if (base == 8) {
+    *p++ = '0';
   }
 
   *p = 0;

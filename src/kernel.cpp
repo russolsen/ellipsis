@@ -97,8 +97,6 @@ TShutdownMode CKernel::Run(void) {
     m_Logger.Write(FromKernel, LogPanic, "Cannot mount drive: %s", DRIVE);
   }
 
-  m_Console.Write((void *)"!!econsole!", 8);
-
   // Run the repl.
   repl();
 
