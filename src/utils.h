@@ -1,6 +1,8 @@
 #ifndef _utils_h
 #define _utils_h
 
+#include <circle/util.h>
+
 inline int IntMax(int a, int b) {
   if (a > b)
     return a;
@@ -44,4 +46,8 @@ inline int ToUpper(int ch) {
   }
   return ch;
 }
+
+extern void ReverseString(char *str);
+extern char *IntToString(int i, char* s);
+
 #endif

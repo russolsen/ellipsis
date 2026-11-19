@@ -49,6 +49,7 @@ int main(void) {
   }
 }
 
+#if 0
 void Print(const char *fmt, ...) {
   va_list var;
   va_start(var, fmt);
@@ -60,3 +61,4 @@ void Print(const char *fmt, ...) {
 
   va_end(var);
 }
+#endif

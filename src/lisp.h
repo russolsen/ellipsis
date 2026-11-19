@@ -2,16 +2,16 @@
 #define _lisp_h_
 
 #include "utils.h"
-#include "io.h"
+#include "printfer.h"
 #include "kernel.h"
 #include "manager.h"
 #include "value.h"
 
 class CLisp {
 public:
-  CLisp(long, CPrinter *, CLogger *);
+  CLisp(long, CPrintFer *, CLogger *);
 
-  CCell *Eval(CCell *, CEnv *);
+  CCell *Eval(CCell *, CEnv * = 0);
 
   CCons *EvalItems(CCons *, CEnv *);
 
@@ -89,10 +89,6 @@ public:
   }
 
   CCell *Apply(CCell *func_expr, CCons *args, CEnv *env) {
-    // m_PPrinter->Print("Apply: ");
-    // Print(args);
-    // m_PPrinter->Print("\n");
-
     ValueType t = func_expr->Type();
 
     if (t == LISP_PRIMITIVE) {
@@ -109,9 +105,7 @@ public:
       CEnv *local_env = BindParameters(params, args, fdef_env);
       return Eval(fdef, local_env);
     } else {
-      m_PPrinter->Print("Error Evaling list: bad verb type: %d\n", t);
-      // func_expr->Print(m_PPrinter);
-      // m_PPrinter->Print("\n");
+      m_PPrintFer->PrintF("Error Evaling list: bad verb type: %d\n", t);
       return Nil;
     }
   }
@@ -124,7 +118,7 @@ public:
       CSymbol *name = (CSymbol *)nv->First();
       nv = nv->Rest();
       if (IsNil(nv)) {
-        m_PPrinter->Print("Odd number of values in let.");
+        m_PPrintFer->PrintF("Odd number of values in let.");
       }
       CCell *value = nv->First();
       nv = nv->Rest();
@@ -159,10 +153,12 @@ public:
 
   CSymbol *SymNil() { return m_SymNil; }
 
+  CPrintFer *GetPrintFer() { return m_PPrintFer; }
+
   void DebugValue(const char *msg, CCell *value) {
-    m_PPrinter->Print("%s: ", msg);
+    m_PPrintFer->PrintF("%s: ", msg);
     Print(value);
-    m_PPrinter->Print("\n");
+    m_PPrintFer->PrintF("\n");
   }
 
   CMemoryManager *Manager() { return m_PManager; }
@@ -174,7 +170,7 @@ private:
 private:
   CMemoryManager *m_PManager;
   long m_GCThreshold;
-  CPrinter *m_PPrinter;
+  CPrintFer *m_PPrintFer;
   CLogger *m_PLogger;
   CCons *m_Symbols;
   CEnv *m_Env;

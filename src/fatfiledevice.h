@@ -20,12 +20,13 @@
 #ifndef _circle_nulldevice_h
 #define _circle_nulldevice_h
 
-#include "io.h"
+#include "closeable.h"
+#include "charreader.h"
 #include <SDCard/emmc.h>
 #include <circle/device.h>
 #include <fatfs/ff.h>
 
-class CFatFileDevice : public CExtendedDevice {
+class CFatFileDevice : public CDevice, public CCloseable, public CCharReader {
 public:
   CFatFileDevice(void);
 
@@ -40,7 +41,7 @@ public:
   int Write(void *pBuffer, size_t nCount);
 
   int GetChar();
-  boolean Close();
+  bool Close();
 
   static bool Exists(const char *path) {
     FILINFO fno;
@@ -50,7 +51,7 @@ public:
   }
 
 private:
-  boolean m_IsOpen;
+  bool m_IsOpen;
   FIL m_File;
 };
 

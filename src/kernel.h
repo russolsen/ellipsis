@@ -35,12 +35,13 @@
 #include <circle/usb/usbhcidevice.h>
 #include <fatfs/ff.h>
 
-#include "enhancedconsole.h"
-#include "io.h"
+//#include "enhancedconsole.h"
+//#include "io.h"
+#include "charreader.h"
 
 enum TShutdownMode { ShutdownNone, ShutdownHalt, ShutdownReboot };
 
-class CKernel : public CCharReader, public CPrinter {
+class CKernel : public CCharReader {
 public:
   CKernel(void);
   ~CKernel(void);
@@ -51,14 +52,17 @@ public:
   int GetChar(void);
   int PutChar(int);
   void ReadLine(void);
-  void Print(const char *, ...);
   void DelayMS(const unsigned);
 
-  inline CEnhancedConsole *GetEConsoleP(void) { return &m_EConsole; }
+  //inline CEnhancedConsole *GetEConsoleP(void) { return &m_EConsole; }
 
   inline CConsole *GetConsoleP(void) { return &m_Console; }
 
+  inline CUSBHCIDevice *GetUSBHCIP(void) { return &m_USBHCI; }
+
   inline CLogger *GetLoggerP(void) { return &m_Logger; }
+
+  void PrintF(const char *pFormat, ...);
 
 private:
   // do not change this order
@@ -75,14 +79,12 @@ private:
   CUSBHCIDevice m_USBHCI;
 
   CConsole m_Console;
-  CEnhancedConsole m_EConsole;
+  //CEnhancedConsole m_EConsole;
 
   CEMMCDevice m_EMMC;
   FATFS m_FileSystem;
 
   char m_LineBuffer[501];
 };
-
-void Print(const char *, ...);
 
 #endif

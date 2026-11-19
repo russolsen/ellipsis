@@ -6,17 +6,17 @@
 
 PRIM(FPrint) {
   for (CCons *p = args; p; p = p->Rest()) {
-    lisp->Print(p->First());
+    lisp->GetPrintFer()->PrintF("%v", p->First());
   }
   return Nil;
 }
 
 PRIM(FEmit) {
-  CKernel *k = GetKernelP();
+  //CKernel *k = GetKernelP();
 
   for (CCons *p = args; p; p = p->Rest()) {
     CCharString *s = (CCharString *)p->First();
-    k->Print("%s", s->String());
+    lisp->GetPrintFer()->PrintF("%s", s->String());
   }
 
   return Nil;
@@ -24,7 +24,7 @@ PRIM(FEmit) {
 
 PRIM(FCat) {
   ARG1_AS(path, CCharString *)
-  CKernel *k = GetKernelP();
+  //CKernel *k = GetKernelP();
   CFatFileDevice fd;
   fd.Initialize(path->String(), FA_READ | FA_OPEN_EXISTING);
 
@@ -33,7 +33,7 @@ PRIM(FCat) {
 
   while ((n = fd.Read(buf, sizeof(buf))) > 0) {
     for (int j = 0; j < n; j++) {
-      k->Print("%c", buf[j]);
+      lisp->GetPrintFer()->PrintF("%c", buf[j]);
     }
   }
 

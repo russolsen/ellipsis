@@ -1,8 +1,8 @@
 #ifndef _value_h_
 #define _value_h_
 
-#include "io.h"
 #include <circle/util.h>
+#include "printfer.h"
 
 extern const char *BAD_STRING;
 
@@ -48,6 +48,10 @@ public:
   virtual ValueType Type() { return LISP_RAWCELL; }
   virtual CCell *Car(void) { return Nil; }
   virtual CCell *Cdr(void) { return Nil; }
+
+  virtual void Print(CPrintFer *p) { 
+    p->PrintF("Cell");
+  }
 
   unsigned char Freed(void) { return m_Freed; }
 
@@ -120,7 +124,9 @@ public:
 
   void* operator new(size_t st, CInt* p ) { return p; }
 
-  virtual ValueType Type() { return LISP_INTEGER; }
+  ValueType Type() { return LISP_INTEGER; }
+
+  void Print(CPrintFer *p) { p->PrintF("%d", m_Int); }
 
   long GetInt(void) { return m_Int; }
 
@@ -178,6 +184,8 @@ class CCharString : public CBaseString {
   void* operator new( size_t, CCharString* p ) { return p; }
 
   ValueType Type() { return LISP_STRING; }
+
+  void Print(CPrintFer *p) { p->PrintF("\"%s\"", String()); }
 };
 
 inline CCharString *AsString(CCell *v, const char *name) {
@@ -192,6 +200,8 @@ public:
   CSymbol(const char *name) : CBaseString(name) {}
 
   ValueType Type() { return LISP_SYMBOL; }
+
+  void Print(CPrintFer *p) { p->PrintF("%s", String()); }
 };
 
 inline CSymbol *AsSymbol(CCell *v, const char *name) {

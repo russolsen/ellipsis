@@ -63,8 +63,8 @@ TokenType CParser::ReadToken(void) {
 
   int ch = PeekChar();
 
-  if (m_Debug)
-    Print("1st char is %c (%d)\n", ch, ch);
+  //if (m_Debug)
+   // Print("1st char is %c (%d)\n", ch, ch);
 
   if (ch <= 0) {
     return TT_EOF;

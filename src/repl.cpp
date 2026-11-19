@@ -2,9 +2,9 @@
 #include <circle/alloc.h>
 
 #include "ellipsis.h"
-#include "enhancedconsole.h"
 #include "fatfiledevice.h"
-#include "io.h"
+#include "prompter.h"
+#include "hcireader.h"
 #include "lisp.h"
 #include "parser.h"
 
@@ -12,13 +12,12 @@ const char *STARTUP = "startup.lsp";
 
 int repl(void) {
   CKernel *pKernel = GetKernelP();
-
-  CLisp lisp(32000, pKernel, pKernel->GetLoggerP());
-
-  CCharPrompter prompter("Ellipsis> ", pKernel, pKernel);
+  CConsole *console = pKernel->GetConsoleP();
+  CHCIReader *hci_reader = new CHCIReader(console, pKernel->GetUSBHCIP());
+  CPrintFer printfer(pKernel->GetConsoleP());
+  CPrompter prompter("Ellipsis> ", hci_reader);
   CParser parser(&prompter);
-
-  pKernel->Print("\n\nWelcome to Ellipsis!\n\n");
+  CLisp lisp(32000, &printfer, pKernel->GetLoggerP());
 
 #if 1
   if (CFatFileDevice::Exists(STARTUP)) {
@@ -28,16 +27,14 @@ int repl(void) {
 
   while (1) {
     CCell *v = parser.ReadValue(&lisp);
-    lisp.DebugValue("Read expr:", v);
-
     if (v == lisp.Eof()) {
       break;
     }
     CCell *result = lisp.Eval(v, 0);
-    lisp.Print(result);
-    pKernel->Print("\n");
+    printfer.PrintF("%v\n", result);
     lisp.GC();
   }
 
   return 1;
 }
+

@@ -13,18 +13,17 @@ PRIM(FFreeCount) {
 }
 
 PRIM(FInfo) {
-  CKernel *k = GetKernelP();
-  k->Print("Size of CCell: %d ", sizeof(CCell));
-  k->Print("CFunction: %d  ", sizeof(CFunction));
-  k->Print("CCons: %d ", sizeof(CCons));
-  k->Print("CPrimitive: %d ", sizeof(CPrimitive));
-  k->Print("CEnv: %d ", sizeof(CEnv));
-  k->Print("\n");
-  k->Print("Num free cells: %d\n", lisp->Manager()->FreeCount());
-  k->Print("\n");
-  k->Print("Devices:\n");
+  lisp->GetPrintFer()->PrintF("Size of CCell: %d ", sizeof(CCell));
+  lisp->GetPrintFer()->PrintF("CFunction: %d  ", sizeof(CFunction));
+  lisp->GetPrintFer()->PrintF("CCons: %d ", sizeof(CCons));
+  lisp->GetPrintFer()->PrintF("CPrimitive: %d ", sizeof(CPrimitive));
+  lisp->GetPrintFer()->PrintF("CEnv: %d ", sizeof(CEnv));
+  lisp->GetPrintFer()->PrintF("\n");
+  lisp->GetPrintFer()->PrintF("Num free cells: %d\n", lisp->Manager()->FreeCount());
+  lisp->GetPrintFer()->PrintF("\n");
+  lisp->GetPrintFer()->PrintF("Devices:\n");
   CDeviceNameService *dns = CDeviceNameService::Get();
-  dns->ListDevices(k->GetConsoleP(), true);
+  dns->ListDevices(GetKernelP()->GetConsoleP(), true);
   return Nil;
 }
 

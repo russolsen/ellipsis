@@ -5,14 +5,15 @@
 #include "parser.h"
 #include "prims_basic.h"
 #include "prims_io.h"
+#include "bufferedreader.h"
 #include <circle/stdarg.h>
 
 const char *FromLisp = "Lisp";
 
-CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
+CLisp::CLisp(long msize, CPrintFer *printer, CLogger *logger) {
   m_PManager = new CMemoryManager(msize);
   m_GCThreshold = IntMax(msize * 0.5, 500);
-  m_PPrinter = printer;
+  m_PPrintFer = printer;
   m_PLogger = logger;
   m_Symbols = (CCons *)Nil;
 
@@ -45,10 +46,7 @@ CLisp::CLisp(long msize, CPrinter *printer, CLogger *logger) {
   InitIOPrimitives(this);
 }
 
-CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
-  //m_PPrinter->Print("Eval: ");
-  //Print(expr);
-  //m_PPrinter->Print("\n");
+CCell *CLisp::Eval(CCell *expr, CEnv *env) {
 
   if (!env)
     env = m_Env;
@@ -70,7 +68,7 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
   case LISP_SYMBOL:
   case LISP_SHORT_SYMBOL:
     if (!env->FindBinding(expr, &b)) {
-      m_PPrinter->Print("%s: ???\n", ((CSymbol *)expr)->String());
+      m_PPrintFer->PrintF("%s: ???\n", ((CSymbol *)expr)->String());
       return Nil;
     }
     return b->Cdr();
@@ -78,7 +76,7 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
   case LISP_CONS:
     return EvalList((CCons *)expr, env);
   default:
-    m_PPrinter->Print("%x: ???\n", expr);
+    m_PPrintFer->PrintF("%x: ???\n", expr);
     return Nil;
   }
 }
@@ -86,58 +84,68 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env = 0) {
 void CLisp::Print(CCell *expr, const char *spacer) {
   ValueType t = TypeOf(expr);
 
+  if (t == LISP_NIL) {
+    m_PPrintFer->PrintF("nil");
+  }
+  else {
+    expr->Print(m_PPrintFer);
+  }
+
+  m_PPrintFer->PrintF(spacer);
+#if 0
   switch (t) {
   case LISP_EMPTY:
-    m_PPrinter->Print("() ");
+    m_PPrintFer->PrintF("() ");
     break;
   case LISP_NIL:
-    m_PPrinter->Print("nil ");
+    m_PPrintFer->PrintF("nil ");
     break;
   case LISP_INTEGER:
-    m_PPrinter->Print("%d ", ((CInt *)expr)->GetInt());
+    m_PPrintFer->PrintF("%d ", ((CInt *)expr)->GetInt());
     break;
   case LISP_PRIMITIVE:
-    m_PPrinter->Print("Prim(%x) ", ((CPrimitive *)expr)->GetPFunc());
+    m_PPrintFer->PrintF("Prim(%x) ", ((CPrimitive *)expr)->GetPFunc());
     break;
   case LISP_STRING:
   case LISP_SHORT_STRING:
-    m_PPrinter->Print("\"%s\" ", ((CCharString *)expr)->String());
+    m_PPrintFer->PrintF("\"%s\" ", ((CCharString *)expr)->String());
     break;
   case LISP_FUNCTION:
   case LISP_MACRO:
     if (t == LISP_MACRO)
-      m_PPrinter->Print("(*macro ");
+      m_PPrintFer->PrintF("(*macro ");
     else
-      m_PPrinter->Print("(*fn ");
+      m_PPrintFer->PrintF("(*fn ");
     Print(((CFunction *)expr)->Def()->First());
     Print(((CFunction *)expr)->Def()->Second());
-    m_PPrinter->Print(") ");
+    m_PPrintFer->PrintF(") ");
     break;
   case LISP_SYMBOL:
   case LISP_SHORT_SYMBOL:
-    m_PPrinter->Print("%s ", ((CSymbol *)expr)->String());
+    m_PPrintFer->PrintF("%s ", ((CSymbol *)expr)->String());
     break;
   case LISP_CONS:
     if (IsProperList(expr)) {
-      m_PPrinter->Print("(");
+      m_PPrintFer->PrintF("(");
       for (CCons *p = (CCons *)expr; p; p = p->Rest()) {
         Print(p->First());
-        m_PPrinter->Print(" ");
+        m_PPrintFer->PrintF(" ");
       }
-      m_PPrinter->Print(")");
+      m_PPrintFer->PrintF(")");
     } else {
-      m_PPrinter->Print("[");
+      m_PPrintFer->PrintF("[");
       Print(((CCons *)expr)->First());
-      m_PPrinter->Print(".");
+      m_PPrintFer->PrintF(".");
       Print(((CCons *)expr)->Rest());
-      m_PPrinter->Print("]");
+      m_PPrintFer->PrintF("]");
     }
     break;
   default:
-    m_PPrinter->Print("%x?? ", expr);
+    m_PPrintFer->PrintF("%x?? ", expr);
     break;
   }
-  m_PPrinter->Print(spacer);
+#endif
+
 }
 
 CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
@@ -175,7 +183,7 @@ CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
     // DebugValue("Macro resulting code", resulting_code);
     return Eval(resulting_code, ((CFunction *)evaled_verb)->Env());
   } else {
-    // m_PPrinter->Print("Function!\n");
+    // m_PPrintFer->PrintF("Function!\n");
     CCons *evaled_args = EvalItems(args, env);
     return Apply(evaled_verb, evaled_args, env);
   }
@@ -202,7 +210,7 @@ CCons *CLisp::EvalItems(CCons *expr, CEnv *env) {
 CCell *CLisp::Load(const char *path) {
   CFatFileDevice fd;
   fd.Initialize(path, FA_READ | FA_OPEN_EXISTING);
-  CBufferedCharReader reader(&fd);
+  CBufferedReader reader(&fd);
   CParser parser(&reader, false);
 
   CCell *result = nullptr;
@@ -316,7 +324,7 @@ CEnv *CLisp::BindParameters(CCons *params, CCons *args, CEnv *parent_env) {
   CEnv *result = MakeEnv((CCons *)Nil, parent_env);
   for (CCons *pParam = params; NotNil(pParam); pParam = pParam->Rest()) {
     if (args == Nil) {
-      m_PPrinter->Print("Too few Arguments!\n");
+      m_PPrintFer->PrintF("Too few Arguments!\n");
       DebugValue("args", args);
       DebugValue("params", params);
       return (CEnv *)Nil; // Error.
@@ -326,7 +334,7 @@ CEnv *CLisp::BindParameters(CCons *params, CCons *args, CEnv *parent_env) {
     args = args->Rest();
   }
   if (args != Nil) {
-    m_PPrinter->Print("Too many Arguments!");
+    m_PPrintFer->PrintF("Too many Arguments\n!");
     return (CEnv *)Nil;
   }
   return result;
