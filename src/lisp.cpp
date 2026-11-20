@@ -92,60 +92,6 @@ void CLisp::Print(CCell *expr, const char *spacer) {
   }
 
   m_PPrintFer->PrintF(spacer);
-#if 0
-  switch (t) {
-  case LISP_EMPTY:
-    m_PPrintFer->PrintF("() ");
-    break;
-  case LISP_NIL:
-    m_PPrintFer->PrintF("nil ");
-    break;
-  case LISP_INTEGER:
-    m_PPrintFer->PrintF("%d ", ((CInt *)expr)->GetInt());
-    break;
-  case LISP_PRIMITIVE:
-    m_PPrintFer->PrintF("Prim(%x) ", ((CPrimitive *)expr)->GetPFunc());
-    break;
-  case LISP_STRING:
-  case LISP_SHORT_STRING:
-    m_PPrintFer->PrintF("\"%s\" ", ((CCharString *)expr)->String());
-    break;
-  case LISP_FUNCTION:
-  case LISP_MACRO:
-    if (t == LISP_MACRO)
-      m_PPrintFer->PrintF("(*macro ");
-    else
-      m_PPrintFer->PrintF("(*fn ");
-    Print(((CFunction *)expr)->Def()->First());
-    Print(((CFunction *)expr)->Def()->Second());
-    m_PPrintFer->PrintF(") ");
-    break;
-  case LISP_SYMBOL:
-  case LISP_SHORT_SYMBOL:
-    m_PPrintFer->PrintF("%s ", ((CSymbol *)expr)->String());
-    break;
-  case LISP_CONS:
-    if (IsProperList(expr)) {
-      m_PPrintFer->PrintF("(");
-      for (CCons *p = (CCons *)expr; p; p = p->Rest()) {
-        Print(p->First());
-        m_PPrintFer->PrintF(" ");
-      }
-      m_PPrintFer->PrintF(")");
-    } else {
-      m_PPrintFer->PrintF("[");
-      Print(((CCons *)expr)->First());
-      m_PPrintFer->PrintF(".");
-      Print(((CCons *)expr)->Rest());
-      m_PPrintFer->PrintF("]");
-    }
-    break;
-  default:
-    m_PPrintFer->PrintF("%x?? ", expr);
-    break;
-  }
-#endif
-
 }
 
 CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
