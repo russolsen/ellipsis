@@ -13,6 +13,7 @@ OBJS	= hcireader.o bufferedreader.o printfer.o utils.o value.o ellipsis.o kernel
 
 LIBS	= $(FATFS)/libfatfs.a \
 	  $(CIRCLEHOME)/addon/SDCard/libsdcard.a \
+	  $(CIRCLEHOME)/lib/sched/libsched.a \
 	  $(CIRCLEHOME)/lib/usb/libusb.a \
 	  $(CIRCLEHOME)/lib/input/libinput.a \
 	  $(CIRCLEHOME)/lib/fs/libfs.a \

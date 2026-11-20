@@ -1,16 +1,10 @@
-#include "kernel.h"
-#include <circle/alloc.h>
-
-#include "ellipsis.h"
+#include "repl.h"
 #include "fatfiledevice.h"
-#include "prompter.h"
 #include "hcireader.h"
-#include "lisp.h"
-#include "parser.h"
 
 const char *STARTUP = "startup.lsp";
 
-int repl(void) {
+void CRepl::Run(void) {
   CKernel *pKernel = GetKernelP();
   CConsole *console = pKernel->GetConsoleP();
   CHCIReader *hci_reader = new CHCIReader(console, pKernel->GetUSBHCIP());
@@ -35,6 +29,5 @@ int repl(void) {
     lisp.GC();
   }
 
-  return 1;
+  return;
 }
-

@@ -34,12 +34,27 @@
 #include <circle/types.h>
 #include <circle/usb/usbhcidevice.h>
 #include <fatfs/ff.h>
+#include <circle/sched/scheduler.h>
+#include <circle/sched/task.h>
 
 //#include "enhancedconsole.h"
 //#include "io.h"
 #include "charreader.h"
 
 enum TShutdownMode { ShutdownNone, ShutdownHalt, ShutdownReboot };
+
+class CX : public CTask {
+  public:
+  CX(CConsole *console) {
+    m_Console = console;
+  }
+
+  private:
+  virtual void Run(void); 
+
+  private:
+    CConsole *m_Console;
+};
 
 class CKernel : public CCharReader {
 public:
@@ -74,6 +89,7 @@ private:
   CExceptionHandler m_ExceptionHandler;
   CInterruptSystem m_Interrupt;
   CTimer m_Timer;
+  CScheduler m_Scheduler;
   CLogger m_Logger;
 
   CUSBHCIDevice m_USBHCI;

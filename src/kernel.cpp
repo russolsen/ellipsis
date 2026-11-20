@@ -19,17 +19,21 @@
 //
 #include "kernel.h"
 #include "fatfiledevice.h"
+#include "repl.h"
 #include <circle/string.h>
+#include <circle/timer.h>
+
+  void CX::Run(void) {
+    CScheduler *scheduler = CScheduler::Get();
+    while(1) {
+	m_Console->Write("XX", 2);
+        scheduler->Sleep(2);
+    }
+  }
 
 #define DRIVE "SD:"
-//#define DRIVE		"USB:"
-//#define DRIVE		"FD:"
 
 #define FILENAME "/startup.lsp"
-
-// Put in .h file TBD
-
-extern int repl(void);
 
 static const char FromKernel[] = "kernel";
 
@@ -97,8 +101,16 @@ TShutdownMode CKernel::Run(void) {
     m_Logger.Write(FromKernel, LogPanic, "Cannot mount drive: %s", DRIVE);
   }
 
+  // This is an example task to demo several tasks.
+  //CX xx(&m_Console);
+
   // Run the repl.
-  repl();
+  CRepl repl;
+  //repl.Run();
+
+  while(1) {
+	  CScheduler::Get ()->Sleep (1);
+  }
 
   // Unmount file system
   if (f_mount(0, DRIVE, 0) != FR_OK) {
