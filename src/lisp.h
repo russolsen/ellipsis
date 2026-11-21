@@ -7,6 +7,8 @@
 #include "manager.h"
 #include "value.h"
 
+extern CError *Error;
+
 class CLisp {
 public:
   CLisp(long, CPrintFer *, CLogger *);
