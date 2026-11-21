@@ -16,6 +16,14 @@
   CK_ARGS(1)                                                                   \
   CCell *_name1 = args->First();
 
+#define UNPACK1_STR(_name)                                                     \
+  CK_ARGS(1)                                                                   \
+  ARG1_AS(_name, CCharString*)
+
+#define UNPACK1_INT(_name)                                                     \
+  CK_ARGS(1)                                                                   \
+  ARG1_AS(_name, CInt *)
+
 #define ARG1_AS(_name, _type) _type _name = (_type)args->First();
 #define ARG2_AS(_name, _type) _type _name = (_type)args->Second();
 

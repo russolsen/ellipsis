@@ -21,8 +21,7 @@ PRIM(FEmit) {
 }
 
 PRIM(FCat) {
-  ARG1_AS(path, CCharString *)
-  //CKernel *k = GetKernelP();
+  UNPACK1_STR(path)
   CFatFileDevice fd;
   fd.Initialize(path->String(), FA_READ | FA_OPEN_EXISTING);
 
@@ -39,24 +38,36 @@ PRIM(FCat) {
   return Nil;
 }
 
-PRIM(FOpen) {
-  ARG1_AS(path, CCharString *)
+PRIM(FFOpen) {
+  UNPACK1_STR(path)
   CFatFileDevice *fd = new CFatFileDevice();
   fd->Initialize(path->String(), FA_READ | FA_OPEN_EXISTING);
-
+  lisp->GetPrintFer()->PrintF("FOpen: fd: %x ", fd);
   return lisp->MakeInt((long)fd);
 }
 
-PRIM(FClose) {
-  ARG1_INT(i_device);
-  CFatFileDevice *fd = (CFatFileDevice *)i_device;
+PRIM(FFClose) {
+  UNPACK1_INT(i_device);
+  CFatFileDevice *fd = (CFatFileDevice *)(i_device->GetInt());
+  lisp->GetPrintFer()->PrintF("FClose: fd: %x ", fd);
   fd->Close();
   delete fd;
   return Nil;
 }
 
+PRIM(FFRead) {
+  UNPACK1_INT(i_device);
+  CFatFileDevice *fd = (CFatFileDevice *)(i_device->GetInt());
+
+  CParser parser(fd);
+  CCell *result = parser.ReadValue(lisp);
+
+  return result;
+}
+
+
 PRIM(FRead) {
-  ARG1_AS(path, CCharString *)
+  UNPACK1_STR(path)
   CFatFileDevice fd;
   fd.Initialize(path->String(), FA_READ | FA_OPEN_EXISTING);
 
@@ -69,7 +80,7 @@ PRIM(FRead) {
 }
 
 PRIM(FLoad) {
-  ARG1_AS(path, CCharString *)
+  UNPACK1_STR(path)
   CFatFileDevice fd;
   return lisp->Load(path->String());
 }
@@ -105,12 +116,11 @@ PRIM(FDir) {
 }
 
 PRIM(FStat) {
-  FRESULT fr;
-  ARG1_AS(path_string, CCharString *)
+  UNPACK1_STR(path_string)
   const char *path = path_string->String();
 
   FILINFO fno;
-  fr = f_stat(path, &fno);
+  FRESULT fr = f_stat(path, &fno);
 
   CCell *result = Nil;
 
@@ -144,8 +154,9 @@ void InitIOPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("print", FPrint);
   lisp->DefinePrimitive("emit", FEmit);
   lisp->DefinePrimitive("cat", FCat);
-  lisp->DefinePrimitive("f-open", FOpen);
-  lisp->DefinePrimitive("f-close", FClose);
+  lisp->DefinePrimitive("f-open", FFOpen);
+  lisp->DefinePrimitive("f-read", FFRead);
+  lisp->DefinePrimitive("f-close", FFClose);
   lisp->DefinePrimitive("read", FRead);
   lisp->DefinePrimitive("load", FLoad);
   lisp->DefinePrimitive("dir", FDir);
