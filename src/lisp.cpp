@@ -10,6 +10,9 @@
 
 const char *FromLisp = "Lisp";
 
+static CError _error;
+CError *Error = &_error;
+
 CLisp::CLisp(long msize, CPrintFer *printer, CLogger *logger) {
   m_PManager = new CMemoryManager(msize);
   m_GCThreshold = IntMax(msize * 0.5, 500);
@@ -63,13 +66,14 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env) {
   case LISP_FUNCTION:
   case LISP_MACRO:
   case LISP_EMPTY:
+  case LISP_ERROR:
     return expr;
 
   case LISP_SYMBOL:
   case LISP_SHORT_SYMBOL:
     if (!env->FindBinding(expr, &b)) {
       m_PPrintFer->PrintF("%s: ???\n", ((CSymbol *)expr)->String());
-      return Nil;
+      return Error;
     }
     return b->Cdr();
 
@@ -77,7 +81,7 @@ CCell *CLisp::Eval(CCell *expr, CEnv *env) {
     return EvalList((CCons *)expr, env);
   default:
     m_PPrintFer->PrintF("%x: ???\n", expr);
-    return Nil;
+    return Error;
   }
 }
 
@@ -100,7 +104,9 @@ CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
   CCell *verb = expr->First();
   CCons *args = expr->Rest();
 
-  if (verb == m_SymIf) {
+  if (!verb) {
+    return Error;
+  } else if (verb == m_SymIf) {
     CCell *cond = args->First();
     CCell *tpart = args->Second();
     CCell *fpart = args->Third();
@@ -124,14 +130,17 @@ CCell *CLisp::EvalList(CCons *expr, CEnv *env) {
   }
 
   CCell *evaled_verb = Eval(verb, env);
-  if (TypeOf(evaled_verb) == LISP_MACRO) {
+  ValueType t = TypeOf(evaled_verb);
+
+  if (t == LISP_PRIMITIVE || t == LISP_FUNCTION) {
+    CCons *evaled_args = EvalItems(args, env);
+    return Apply(evaled_verb, evaled_args, env);
+  } else if (t == LISP_MACRO) {
     CCell *resulting_code = Apply(evaled_verb, args, env);
     // DebugValue("Macro resulting code", resulting_code);
     return Eval(resulting_code, ((CFunction *)evaled_verb)->Env());
   } else {
-    // m_PPrintFer->PrintF("Function!\n");
-    CCons *evaled_args = EvalItems(args, env);
-    return Apply(evaled_verb, evaled_args, env);
+    return Error;
   }
 }
 

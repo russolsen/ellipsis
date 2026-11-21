@@ -67,6 +67,21 @@ protected:
   unsigned char m_Freed;
 };
 
+class CError : public CCell {
+public:
+  CError() {
+  }
+
+  virtual ValueType Type() { return LISP_ERROR; }
+
+  virtual void Print(CPrintFer *p) {
+    p->PrintF("*error*");
+  }
+
+  CCell *Car(void) { return this; }
+  CCell *Cdr(void) { return this; }
+};
+
 class CCons : public CCell {
 public:
   CCons(CCell *car = Nil, CCell *cdr = Nil) {
