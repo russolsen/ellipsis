@@ -79,6 +79,16 @@ PRIM(FReduce) {
 
 PRIM(FList) { return args; }
 
+PRIM(FEval) {
+  CK_ARG_RANGE(1, 2)
+
+  if (argc == 2) {
+    env = (CEnv *)args->Second();
+  }
+
+  return lisp->Eval(args->First(), env);
+}
+
 PRIM(FApply) {
   UNPACK2(f, lst)
   return lisp->Apply(f, (CCons *)lst, env);
@@ -157,6 +167,7 @@ void InitBasicPrimitives(CLisp *lisp) {
   lisp->DefinePrimitive("doall", FDoAll);
   lisp->DefinePrimitive("reduce", FReduce);
   lisp->DefinePrimitive("list", FList);
+  lisp->DefinePrimitive("eval", FEval);
   lisp->DefinePrimitive("apply", FApply);
   lisp->DefinePrimitive("*env*", FBaseEnv);
   lisp->DefinePrimitive("env", FEnv);
