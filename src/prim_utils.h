@@ -10,6 +10,13 @@
     return Nil;                                                                \
   }
 
+// Check number of args, set argc.
+#define CK_ARG_RANGE(_min, _max)                                               \
+    int argc = ARG_COUNT();                                                    \
+    if ((argc < _min) || (argc > _max)) {                                      \
+      return Error;                                                            \
+    }
+
 #define NO_ARGS() CK_ARGS(0)
 
 #define UNPACK1(_name1)                                                        \
