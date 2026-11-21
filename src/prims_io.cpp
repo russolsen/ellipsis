@@ -43,7 +43,10 @@ PRIM(FFOpen) {
   CFatFileDevice *fd = new CFatFileDevice();
   fd->Initialize(path->String(), FA_READ | FA_OPEN_EXISTING);
   lisp->GetPrintFer()->PrintF("FOpen: fd: %x ", fd);
-  return lisp->MakeInt((long)fd);
+
+  CCharReader *cr = (CCharReader *)fd;
+  lisp->GetPrintFer()->PrintF("FOpen: cr: %x ", cr);
+  return lisp->MakeInt((long)cr);
 }
 
 PRIM(FFClose) {
@@ -57,9 +60,9 @@ PRIM(FFClose) {
 
 PRIM(FFRead) {
   UNPACK1_INT(i_device);
-  CFatFileDevice *fd = (CFatFileDevice *)(i_device->GetInt());
+  CCharReader *cr = (CCharReader *)(i_device->GetInt());
 
-  CParser parser(fd);
+  CParser parser(cr);
   CCell *result = parser.ReadValue(lisp);
 
   return result;
